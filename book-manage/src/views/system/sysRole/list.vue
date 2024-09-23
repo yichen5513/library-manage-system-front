@@ -14,10 +14,12 @@
                     <el-button type="primary" icon="el-icon-search" size="mini" :loading="loading"
                         @click="fetchData()">搜索</el-button>
                     <el-button icon="el-icon-refresh" size="mini" @click="resetData">重置</el-button>
-                    <el-button v-show="isAdmin" type="success" icon="el-icon-plus" size="mini" @click="add">添 加</el-button>
                 </el-row>
             </el-form>
         </div>
+
+        <el-table v-loading="listLoading" :data="list" stripe border style="width: 100%;margin-top: 10px;" @selection-change="handleSelectionChange"/>
+        <el-table-column type="selection"/>
 
 
         <!-- 表格 -->
@@ -38,11 +40,15 @@
             <el-table-column label="操作" width="200" align="center">
                 <template slot-scope="scope">
                     <el-button v-show="isAdmin" type="primary" icon="el-icon-edit" size="mini" @click="edit(scope.row.id)" title="修改" />
-                    <el-button v-show="isAdmin" type="danger" icon="el-icon-delete" size="mini" @click="removeDataById((page - 1) * limit + scope.$index + 1)"
-                        title="删除" />
+                    <el-button v-show="isAdmin" type="danger" icon="el-icon-delete" size="mini" @click="removeDataById(scope.row.id)" title="删除" />
                 </template>
             </el-table-column>
         </el-table>
+
+        <div class="tools-div" style="margin-top: 10px;">
+            <el-button v-show="isAdmin" type="success" icon="el-icon-plus" size="mini" @click="add">添 加</el-button>
+            <el-button v-show="isAdmin" class="btn-add" size="mini" @click="batchRemove()" >批量删除</el-button>
+        </div>
 
         <!-- 分页组件 -->
         <el-pagination :current-page="page" :total="total" :page-size="limit"
@@ -82,6 +88,7 @@
             limit: 3, // 每页记录数
             searchObj: {}, // 查询条件
 
+            selections:[],//多个复选框值
             sysRole:{},//封装表单角色数据
             dialogVisible:false, //是否弹框
             multipleSelection: []// 批量删除选中的记录列表
@@ -116,12 +123,52 @@
         },
         //点击添加弹出框
         add() {
+            this.sysRole = {}
             this.dialogVisible = true
+        },
+        //点击修改，弹出框，根据id查询数据显示
+        edit(id) {
+            //弹出框
+            this.dialogVisible = true
+            //根据id查询
+            this.fetchDataById(id)
+        },
+        //根据id查询
+        fetchDataById(id) {
+            api.getById(id)
+                .then(response => {
+                    this.sysRole = response.data
+                })
         },
         //选择复选框，把复选框所在行内容传递
         handleSelectionChange(selection) {
             this.selections = selection
             console.log(this.selections)
+        },
+        //批量删除
+        batchRemove() {
+            //判断
+            if(this.selections.length == 0) {
+                this.$message.warning('请选择要删除的记录！')
+                return
+            }
+            this.$confirm('此操作将永久删除该记录, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                // [1,2,3]
+                var idList = []
+                //选择复选框数据在数组里面 this.selections
+                this.selections.forEach(item => {
+                    var id = item.id
+                    idList.push(id)
+                });
+                return api.batchRemove(idList)
+            }).then(response => {
+                this.$message.success(response.message)
+                this.fetchData()
+            })
         },
         removeDataById(id) {
             this.$confirm('此操作将永久删除该记录, 是否继续?', '提示', {
