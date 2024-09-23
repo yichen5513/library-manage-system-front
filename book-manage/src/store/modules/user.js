@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, logout, getInfo,register } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
@@ -39,7 +39,8 @@ const actions = {
       login({ userName: username.trim(), password: password }).then(response => {
         const { data } = response
         commit('SET_TOKEN', data.token)
-        commit('setUserRole', username.trim());
+        commit('setUserRole', username.trim())
+        localStorage.setItem('userName',username.trim())
         setToken(data.token)
         resolve()
       }).catch(error => {
@@ -51,7 +52,7 @@ const actions = {
   // get user info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
-      getInfo(state.token,'yichen').then(response => {
+      getInfo(state.token,  localStorage.getItem('userName')).then(response => {
         const { data } = response
 
         if (!data) {

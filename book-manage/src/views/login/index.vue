@@ -42,13 +42,40 @@
       </el-form-item>
 
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
-
+      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;margin-left: 0" @click.native.prevent="openDialog">注册</el-button>
     </el-form>
+
+    <!-- 注册弹框 -->
+    <el-dialog class = "app" title="注册" :visible.sync="dialogVisible" width="30%" @close="resetForm">
+      <el-form :model="registerForm" :rules="rules" ref="registerForm" label-width="120px">
+        <!-- 用户名 -->
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="registerForm.username"></el-input>
+        </el-form-item>
+
+        <!-- 密码 -->
+        <el-form-item label="密码" prop="password">
+          <el-input type="password" v-model="registerForm.password"></el-input>
+        </el-form-item>
+
+        <!-- 是否管理员 -->
+        <el-form-item>
+          <el-checkbox v-model="registerForm.isAdmin">是否管理员</el-checkbox>
+        </el-form-item>
+      </el-form>
+
+      <!-- 底部操作按钮 -->
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm">提交</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { validUsername } from '@/utils/validate'
+import { register } from '@/api/user'
 
 export default {
   name: 'Login',
@@ -68,6 +95,22 @@ export default {
       }
     }
     return {
+      dialogVisible: false, // 弹框的可见性
+      registerForm: {
+        username: '',
+        password: '',
+        isAdmin: false, // 是否管理员
+      },
+      rules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' },
+          { min: 3, message: '用户名至少3个字符', trigger: 'blur' },
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 6, message: '密码至少6个字符', trigger: 'blur' },
+        ],
+      },
       loginForm: {
         username: 'yichen',
         password: '123456'
@@ -90,6 +133,36 @@ export default {
     }
   },
   methods: {
+    // 打开弹框
+    openDialog() {
+      this.dialogVisible = true;
+    },
+    // 提交表单
+    submitForm() {
+      this.$refs.registerForm.validate((valid) => {
+        if (valid) {
+          console.log('注册表单数据:', this.registerForm);
+          // 在这里处理表单提交的逻辑，比如向后端发送请求
+          register({ userName: this.registerForm.username.trim(), password: this.registerForm.password,roleId: this.registerForm.isAdmin ? 1 : 2}).then(response => {
+            const { data } = response
+            if(response.code === 200){
+              this.$message.success(response.data || '注册成功')
+            }else{
+              this.$message.success(response.data || '注册失败')
+            }
+          })
+          this.dialogVisible = false; // 成功提交后关闭弹框
+          this.resetForm();
+        } else {
+          console.log('表单验证失败');
+          return false;
+        }
+      });
+    },
+    // 重置表单
+    resetForm() {
+      this.$refs.registerForm.resetFields();
+    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''

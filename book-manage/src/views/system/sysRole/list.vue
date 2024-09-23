@@ -74,6 +74,8 @@
     // 定义数据模型
     data() {
         return {
+            listLoading:false,
+            loading:false,
             list: [], // 列表
             total: 0, // 总记录数
             page: 1, // 页码
