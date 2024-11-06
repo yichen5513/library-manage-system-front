@@ -46,8 +46,8 @@
     </el-form>
 
     <!-- 注册弹框 -->
-    <el-dialog class = "app" title="注册" :visible.sync="dialogVisible" width="30%" @close="resetForm">
-      <el-form :model="registerForm" :rules="rules" ref="registerForm" label-width="120px">
+    <el-dialog class = "app" title="注册" :visible.sync="dialogVisible" width="30%" @close="resetForm" >
+      <el-form :model="registerForm" :rules="rules" ref="registerForm" label-width="80px">
         <!-- 用户名 -->
         <el-form-item label="用户名" prop="username">
           <el-input v-model="registerForm.username"></el-input>
@@ -59,9 +59,7 @@
         </el-form-item>
 
         <!-- 是否管理员 -->
-        <el-form-item>
-          <el-checkbox v-model="registerForm.isAdmin">是否管理员</el-checkbox>
-        </el-form-item>
+        <el-checkbox v-model="registerForm.isAdmin">是否管理员</el-checkbox>
       </el-form>
 
       <!-- 底部操作按钮 -->
